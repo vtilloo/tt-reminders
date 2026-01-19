@@ -15,6 +15,8 @@ export default defineConfig({
         theme_color: '#2563eb',
         background_color: '#ffffff',
         display: 'standalone',
+        start_url: '/',
+        scope: '/',
         icons: [
           {
             src: 'pwa-192x192.png',
@@ -24,6 +26,12 @@ export default defineConfig({
           {
             src: 'pwa-512x512.png',
             sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any maskable'
+          },
+          {
+            src: 'apple-touch-icon.png',
+            sizes: '180x180',
             type: 'image/png'
           }
         ]
