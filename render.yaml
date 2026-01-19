@@ -2,8 +2,9 @@ services:
   - type: web
     name: tt-reminders
     runtime: node
-    buildCommand: cd client && npm install && npm run build && cd ../server && npm install
-    startCommand: cd server && npm start
+    rootDir: server
+    buildCommand: npm install && cd ../client && npm install && npm run build
+    startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
