@@ -1,3 +1,8 @@
+import { precacheAndRoute } from 'workbox-precaching';
+
+// Precache assets
+precacheAndRoute(self.__WB_MANIFEST);
+
 // Service Worker for Push Notifications
 
 self.addEventListener('push', (event) => {
