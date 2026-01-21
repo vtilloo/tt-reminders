@@ -1,24 +1,44 @@
 // Service Worker for Push Notifications
 
 self.addEventListener('push', (event) => {
-  if (!event.data) return;
+  console.log('Push event received');
 
-  const data = event.data.json();
+  let title = 'TT Reminders';
+  let body = 'You have a notification';
+  let data = {};
+
+  if (event.data) {
+    try {
+      const payload = event.data.json();
+
+      // Handle iOS APNs-style payload (aps.alert)
+      if (payload.aps && payload.aps.alert) {
+        title = payload.aps.alert.title || title;
+        body = payload.aps.alert.body || body;
+      } else {
+        // Handle standard web push payload
+        title = payload.title || title;
+        body = payload.body || body;
+      }
+
+      data = payload.data || {};
+    } catch (e) {
+      console.error('Error parsing push data:', e);
+      body = event.data.text();
+    }
+  }
 
   const options = {
-    body: data.body,
+    body: body,
     icon: '/pwa-192x192.png',
     badge: '/pwa-192x192.png',
-    vibrate: [100, 50, 100],
-    data: data.data || {},
-    actions: [
-      { action: 'open', title: 'Open App' },
-      { action: 'dismiss', title: 'Dismiss' }
-    ]
+    data: data
   };
 
+  console.log('Showing notification:', title, options);
+
   event.waitUntil(
-    self.registration.showNotification(data.title || 'TT Reminders', options)
+    self.registration.showNotification(title, options)
   );
 });
 

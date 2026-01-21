@@ -26,7 +26,11 @@ async function sendPushNotification(userId, payload) {
             auth: sub.auth
           }
         },
-        JSON.stringify(payload)
+        JSON.stringify(payload),
+        {
+          TTL: 60,
+          urgency: 'high'
+        }
       );
     } catch (err) {
       console.error(`Push notification failed for user ${userId}:`, err.message);
@@ -88,8 +92,13 @@ export async function checkAndSendReminders() {
     const dayStr = targetDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
 
     const payload = {
-      title: 'Class Cancellation Reminder',
-      body: `Your ${cls.class_type} class "${cls.title}" is in 7 days (${dayStr}). Today is the last day to cancel without penalty!`,
+      aps: {
+        alert: {
+          title: 'Class Cancellation Reminder',
+          body: `Your ${cls.class_type} class "${cls.title}" is in 7 days (${dayStr}). Today is the last day to cancel without penalty!`
+        },
+        sound: 'default'
+      },
       data: {
         classId: cls.id,
         url: '/dashboard'

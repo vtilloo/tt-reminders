@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import webpush from 'web-push';
 import { getDbSync } from '../db/database.js';
 import { authenticate } from '../middleware/auth.js';
 
@@ -71,11 +72,21 @@ router.post('/test', async (req, res) => {
       return res.status(400).json({ error: 'No push subscription found. Enable notifications first.' });
     }
 
-    const webpush = (await import('web-push')).default;
+    // Ensure VAPID is configured
+    webpush.setVapidDetails(
+      'mailto:' + (process.env.VAPID_EMAIL || 'admin@example.com'),
+      process.env.VAPID_PUBLIC_KEY,
+      process.env.VAPID_PRIVATE_KEY
+    );
 
     const payload = JSON.stringify({
-      title: 'Test Notification',
-      body: 'Push notifications are working! You will receive reminders 7 days before your classes.',
+      aps: {
+        alert: {
+          title: 'Test Notification',
+          body: 'Push notifications are working! You will receive reminders 7 days before your classes.'
+        },
+        sound: 'default'
+      },
       data: { url: '/dashboard' }
     });
 
@@ -84,7 +95,11 @@ router.post('/test', async (req, res) => {
         endpoint: sub.endpoint,
         keys: { p256dh: sub.p256dh, auth: sub.auth }
       },
-      payload
+      payload,
+      {
+        TTL: 60,
+        urgency: 'high'
+      }
     );
 
     res.json({ success: true, message: 'Test notification sent!' });
