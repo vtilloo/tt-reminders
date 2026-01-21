@@ -72,6 +72,10 @@ router.post('/test', async (req, res) => {
       return res.status(400).json({ error: 'No push subscription found. Enable notifications first.' });
     }
 
+    // Check if this is an iOS subscription
+    const isApple = sub.endpoint.includes('apple') || sub.endpoint.includes('safari');
+    const isGoogle = sub.endpoint.includes('google') || sub.endpoint.includes('fcm');
+
     // Ensure VAPID is configured
     webpush.setVapidDetails(
       'mailto:' + (process.env.VAPID_EMAIL || 'admin@example.com'),
@@ -90,7 +94,7 @@ router.post('/test', async (req, res) => {
       data: { url: '/dashboard' }
     });
 
-    await webpush.sendNotification(
+    const result = await webpush.sendNotification(
       {
         endpoint: sub.endpoint,
         keys: { p256dh: sub.p256dh, auth: sub.auth }
@@ -102,10 +106,15 @@ router.post('/test', async (req, res) => {
       }
     );
 
-    res.json({ success: true, message: 'Test notification sent!' });
+    res.json({
+      success: true,
+      message: `Sent! Platform: ${isApple ? 'Apple' : isGoogle ? 'Google' : 'Unknown'}. Status: ${result.statusCode}. If no notification appears, try: 1) Delete app from Home Screen, 2) Restart iPhone, 3) Re-add app, 4) Enable notifications again.`
+    });
   } catch (err) {
     console.error('Test notification error:', err);
-    res.status(500).json({ error: 'Failed to send notification: ' + err.message });
+    res.status(500).json({
+      error: `Failed: ${err.message}. StatusCode: ${err.statusCode || 'none'}`
+    });
   }
 });
 
