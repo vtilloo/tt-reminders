@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { getDbSync } from '../db/database.js';
 import { authenticate } from '../middleware/auth.js';
+import { sendSkipNotification } from '../services/email.js';
 
 const router = Router();
 
@@ -146,16 +147,39 @@ router.delete('/:id', (req, res) => {
 });
 
 // Mark class as cancelled/uncancelled
-router.patch('/:id/cancel', (req, res) => {
+router.patch('/:id/cancel', async (req, res) => {
   try {
     const db = getDbSync();
     const { is_cancelled } = req.body;
 
-    const result = db.prepare('UPDATE classes SET is_cancelled = ? WHERE id = ? AND user_id = ?')
+    // Get class details before updating
+    const cls = db.prepare('SELECT * FROM classes WHERE id = ? AND user_id = ?')
+      .get(req.params.id, req.user.id);
+
+    if (!cls) {
+      return res.status(404).json({ error: 'Class not found' });
+    }
+
+    db.prepare('UPDATE classes SET is_cancelled = ? WHERE id = ? AND user_id = ?')
       .run(is_cancelled ? 1 : 0, req.params.id, req.user.id);
 
-    if (result.changes === 0) {
-      return res.status(404).json({ error: 'Class not found' });
+    // Send email to club when class is cancelled
+    if (is_cancelled) {
+      const user = db.prepare('SELECT email, name FROM users WHERE id = ?').get(req.user.id);
+
+      // Determine class date
+      let classDate;
+      if (cls.is_recurring) {
+        // For recurring classes, find next occurrence
+        const today = new Date();
+        const daysUntil = (cls.recurring_day - today.getDay() + 7) % 7 || 7;
+        classDate = new Date(today);
+        classDate.setDate(today.getDate() + daysUntil);
+      } else {
+        classDate = cls.date_time;
+      }
+
+      await sendSkipNotification(user.email, user.name, cls.title, classDate);
     }
 
     const updated = db.prepare('SELECT * FROM classes WHERE id = ?').get(req.params.id);
