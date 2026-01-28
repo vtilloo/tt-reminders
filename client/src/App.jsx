@@ -9,6 +9,8 @@ import AddClass from './pages/AddClass';
 import EditClass from './pages/EditClass';
 import Admin from './pages/Admin';
 import Settings from './pages/Settings';
+import RespondToReminder from './pages/RespondToReminder';
+import Analytics from './pages/Analytics';
 
 function ProtectedRoute({ children, adminOnly = false }) {
   const { user, loading } = useAuth();
@@ -72,6 +74,22 @@ function App() {
           element={
             <ProtectedRoute adminOnly>
               <Admin />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/respond/:notificationId"
+          element={
+            <ProtectedRoute>
+              <RespondToReminder />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/analytics"
+          element={
+            <ProtectedRoute>
+              <Analytics />
             </ProtectedRoute>
           }
         />

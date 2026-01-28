@@ -91,6 +91,14 @@ export async function checkAndSendReminders() {
   for (const cls of allClasses) {
     const dayStr = targetDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
 
+    // Record that notification was sent first to get the notification ID
+    const result = db.prepare(`
+      INSERT INTO notifications_sent (class_id, target_date)
+      VALUES (?, ?)
+    `).run(cls.id, targetDateStr);
+
+    const notificationId = result.lastInsertRowid;
+
     const payload = {
       aps: {
         alert: {
@@ -101,19 +109,14 @@ export async function checkAndSendReminders() {
       },
       data: {
         classId: cls.id,
-        url: '/dashboard'
+        notificationId: notificationId,
+        url: `/respond/${notificationId}`
       }
     };
 
     await sendPushNotification(cls.user_id, payload);
 
-    // Record that notification was sent
-    db.prepare(`
-      INSERT INTO notifications_sent (class_id, target_date)
-      VALUES (?, ?)
-    `).run(cls.id, targetDateStr);
-
-    console.log(`Sent reminder for class ${cls.id} to user ${cls.user_id}`);
+    console.log(`Sent reminder for class ${cls.id} (notification ${notificationId}) to user ${cls.user_id}`);
   }
 
   console.log('Reminder check complete');

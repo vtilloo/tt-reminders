@@ -18,6 +18,7 @@ function Navbar() {
           {user ? (
             <>
               <Link to="/dashboard">Classes</Link>
+              <Link to="/analytics">Analytics</Link>
               <Link to="/settings">Settings</Link>
               {user.is_admin ? <Link to="/admin">Admin</Link> : null}
               <button onClick={handleLogout} className="btn btn-outline btn-small">

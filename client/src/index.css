@@ -447,6 +447,127 @@ body {
   color: var(--text-light);
 }
 
+/* Respond to Reminder Page */
+.respond-page {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.respond-page h1 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.reminder-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.reminder-card h2 {
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  color: var(--primary);
+}
+
+.reminder-details p {
+  margin-bottom: 0.5rem;
+}
+
+.recurring-badge {
+  display: inline-block;
+  background: #fef3c7;
+  color: #d97706;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-top: 0.5rem;
+}
+
+.response-buttons {
+  text-align: center;
+}
+
+.response-prompt {
+  font-size: 1.125rem;
+  margin-bottom: 1rem;
+}
+
+.button-group {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.btn-success {
+  background: var(--success);
+  color: white;
+}
+
+.btn-success:hover {
+  background: #16a34a;
+}
+
+.btn-large {
+  padding: 1rem 2rem;
+  font-size: 1.125rem;
+}
+
+.response-confirmation {
+  text-align: center;
+}
+
+.response-result {
+  padding: 2rem;
+  border-radius: var(--radius);
+  margin-bottom: 1rem;
+}
+
+.response-result.response-yes {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.response-result.response-no {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.response-icon {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+/* Analytics Page */
+.analytics-page {
+  padding-bottom: 2rem;
+}
+
+.analytics-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.analytics-summary .stat-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-container {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  height: 400px;
+}
+
 /* Responsive */
 @media (max-width: 600px) {
   .hero h1 {
@@ -482,5 +603,13 @@ body {
   .navbar-links a {
     padding: 0.5rem;
     font-size: 0.875rem;
+  }
+
+  .button-group {
+    flex-direction: column;
+  }
+
+  .chart-container {
+    height: 300px;
   }
 }

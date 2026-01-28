@@ -9,6 +9,7 @@ import authRoutes from './routes/auth.js';
 import classRoutes from './routes/classes.js';
 import pushRoutes from './routes/push.js';
 import adminRoutes from './routes/admin.js';
+import reminderRoutes from './routes/reminders.js';
 import { initializeWebPush, startScheduler, triggerManualCheck } from './services/scheduler.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -26,6 +27,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/classes', classRoutes);
 app.use('/api/push', pushRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/reminders', reminderRoutes);
 
 // Manual trigger endpoint (for testing)
 app.post('/api/trigger-reminders', async (req, res) => {

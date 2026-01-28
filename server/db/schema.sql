@@ -46,8 +46,23 @@ CREATE TABLE IF NOT EXISTS notifications_sent (
   UNIQUE(class_id, target_date)
 );
 
+-- Reminder responses table (tracks Yes/No responses to reminders)
+CREATE TABLE IF NOT EXISTS reminder_responses (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  notification_id INTEGER NOT NULL,
+  user_id INTEGER NOT NULL,
+  class_id INTEGER NOT NULL,
+  response TEXT NOT NULL CHECK (response IN ('yes', 'no')),
+  responded_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (notification_id) REFERENCES notifications_sent(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE CASCADE
+);
+
 -- Index for faster queries
 CREATE INDEX IF NOT EXISTS idx_classes_user_id ON classes(user_id);
 CREATE INDEX IF NOT EXISTS idx_classes_date_time ON classes(date_time);
 CREATE INDEX IF NOT EXISTS idx_classes_recurring ON classes(is_recurring, recurring_day);
 CREATE INDEX IF NOT EXISTS idx_push_subscriptions_user_id ON push_subscriptions(user_id);
+CREATE INDEX IF NOT EXISTS idx_reminder_responses_user_id ON reminder_responses(user_id);
+CREATE INDEX IF NOT EXISTS idx_reminder_responses_notification_id ON reminder_responses(notification_id);
