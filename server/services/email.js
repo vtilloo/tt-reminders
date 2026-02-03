@@ -18,6 +18,11 @@ function getTransporter() {
 }
 
 export async function sendSkipNotification(userEmail, userName, classTitle, classDate) {
+  console.log('Attempting to send skip notification email...');
+  console.log('SMTP_HOST:', process.env.SMTP_HOST || 'NOT SET');
+  console.log('SMTP_PORT:', process.env.SMTP_PORT || 'NOT SET');
+  console.log('CLUB_EMAIL:', process.env.CLUB_EMAIL || 'NOT SET');
+
   const transport = getTransporter();
   const clubEmail = process.env.CLUB_EMAIL;
 
@@ -39,7 +44,7 @@ export async function sendSkipNotification(userEmail, userName, classTitle, clas
   });
 
   const mailOptions = {
-    from: process.env.SMTP_USER,
+    from: process.env.SMTP_FROM || 'onboarding@resend.dev',
     to: clubEmail,
     subject: `Class Skip Notification - ${userName}`,
     text: `A member has indicated they will skip a class.
@@ -76,11 +81,13 @@ This is an automated notification from TT Reminders.`,
   };
 
   try {
-    await transport.sendMail(mailOptions);
-    console.log(`Skip notification email sent to ${clubEmail} for user ${userName}`);
+    console.log('Sending email to:', clubEmail);
+    const result = await transport.sendMail(mailOptions);
+    console.log('Email sent successfully:', result.messageId);
     return { success: true };
   } catch (err) {
     console.error('Failed to send skip notification email:', err.message);
+    console.error('Full error:', err);
     return { success: false, reason: err.message };
   }
 }
