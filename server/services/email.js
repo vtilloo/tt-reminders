@@ -1,38 +1,20 @@
-import nodemailer from 'nodemailer';
-
-let transporter = null;
-
-function getTransporter() {
-  if (!transporter && process.env.SMTP_HOST) {
-    transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: parseInt(process.env.SMTP_PORT || '587', 10),
-      secure: process.env.SMTP_PORT === '465',
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
-      }
-    });
-  }
-  return transporter;
-}
+// Using Resend HTTP API instead of SMTP (Render blocks SMTP ports)
 
 export async function sendSkipNotification(userEmail, userName, classTitle, classDate) {
-  console.log('Attempting to send skip notification email...');
-  console.log('SMTP_HOST:', process.env.SMTP_HOST || 'NOT SET');
-  console.log('SMTP_PORT:', process.env.SMTP_PORT || 'NOT SET');
-  console.log('CLUB_EMAIL:', process.env.CLUB_EMAIL || 'NOT SET');
-
-  const transport = getTransporter();
+  const apiKey = process.env.RESEND_API_KEY;
   const clubEmail = process.env.CLUB_EMAIL;
 
-  if (!transport) {
-    console.warn('Email not configured - skipping skip notification email');
-    return { success: false, reason: 'Email not configured' };
+  console.log('Attempting to send skip notification email...');
+  console.log('RESEND_API_KEY:', apiKey ? 'SET' : 'NOT SET');
+  console.log('CLUB_EMAIL:', clubEmail || 'NOT SET');
+
+  if (!apiKey) {
+    console.warn('RESEND_API_KEY not configured - skipping email');
+    return { success: false, reason: 'Resend API key not configured' };
   }
 
   if (!clubEmail) {
-    console.warn('CLUB_EMAIL not configured - skipping skip notification email');
+    console.warn('CLUB_EMAIL not configured - skipping email');
     return { success: false, reason: 'Club email not configured' };
   }
 
@@ -43,18 +25,10 @@ export async function sendSkipNotification(userEmail, userName, classTitle, clas
     day: 'numeric'
   });
 
-  const mailOptions = {
-    from: process.env.SMTP_FROM || 'onboarding@resend.dev',
-    to: clubEmail,
+  const emailData = {
+    from: 'TT Reminders <onboarding@resend.dev>',
+    to: [clubEmail],
     subject: `Class Skip Notification - ${userName}`,
-    text: `A member has indicated they will skip a class.
-
-Member: ${userName}
-Email: ${userEmail}
-Class: ${classTitle}
-Scheduled Date: ${formattedDate}
-
-This is an automated notification from TT Reminders.`,
     html: `
       <h2>Class Skip Notification</h2>
       <p>A member has indicated they will skip a class.</p>
@@ -82,12 +56,27 @@ This is an automated notification from TT Reminders.`,
 
   try {
     console.log('Sending email to:', clubEmail);
-    const result = await transport.sendMail(mailOptions);
-    console.log('Email sent successfully:', result.messageId);
+
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(emailData)
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      console.error('Resend API error:', result);
+      return { success: false, reason: result.message || 'API error' };
+    }
+
+    console.log('Email sent successfully:', result.id);
     return { success: true };
   } catch (err) {
-    console.error('Failed to send skip notification email:', err.message);
-    console.error('Full error:', err);
+    console.error('Failed to send email:', err.message);
     return { success: false, reason: err.message };
   }
 }
